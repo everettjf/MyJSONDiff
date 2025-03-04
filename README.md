@@ -1,40 +1,57 @@
-# Tauri + React + Typescript
+# JSON Diff Tool
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+一个美观、易用的JSON差异比较工具，帮助你可视化比较两个JSON对象之间的差异。
 
-## Recommended IDE Setup
+## 功能特点
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+- 直观的用户界面，左右并排显示JSON输入
+- 精确识别添加、删除和修改的属性
+- 支持复杂的嵌套对象和数组比较
+- 彩色高亮显示差异，便于快速识别
+- 完全客户端运行，无需服务器处理
+- 支持深色模式
+- 响应式设计，适用于各种设备
 
+## 如何使用
 
+1. 在左侧文本框中粘贴第一个JSON对象
+2. 在右侧文本框中粘贴第二个JSON对象
+3. 点击"Compare JSON"按钮查看差异
+4. 差异结果将以彩色高亮方式显示在下方
 
+## 差异类型说明
 
+- **添加** (绿色): 在右侧JSON中存在但在左侧JSON中不存在的属性
+- **删除** (红色): 在左侧JSON中存在但在右侧JSON中不存在的属性  
+- **修改** (黄色): 在两侧JSON中都存在但值不同的属性
 
+## 技术栈
 
-(base) ➜  MyJSONDiff git:(main) cargo install create-tauri-app --locked
-cargo create-tauri-app
-    Updating crates.io index
-     Ignored package `create-tauri-app v4.5.9` is already installed, use --force to override
-✔ Project name · my-json-diff
-✔ Identifier · com.xnu.jsondiff
-✔ Choose which language to use for your frontend · TypeScript / JavaScript - (pnpm, yarn, npm, deno, bun)
-✔ Choose your package manager · npm
-✔ Choose your UI template · React - (https://react.dev/)
-✔ Choose your UI flavor · TypeScript
+- Next.js 14
+- React
+- TypeScript
+- Tailwind CSS
 
-Template created! To get started run:
-  cd my-json-diff
-  npm install
-  npm run tauri android init
-  npm run tauri ios init
+## 本地开发
 
-For Desktop development, run:
-  npm run tauri dev
+```bash
+# 安装依赖
+npm install
 
-For Android development, run:
-  npm run tauri android dev
+# 启动开发服务器
+npm run dev
 
-For iOS development, run:
-  npm run tauri ios dev
+# 构建生产版本
+npm run build
 
-(base) ➜  MyJSONDiff git:(main) ✗ 
+# 启动生产服务器
+npm run start
+```
+
+## 贡献
+
+欢迎提交问题和改进建议！
+
+## 许可证
+
+MIT 

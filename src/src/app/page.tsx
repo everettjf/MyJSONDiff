@@ -1,101 +1,423 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+
+// Define demo JSON examples
+const demoLeftJSON = JSON.stringify({
+  name: "Product A",
+  price: 19.99,
+  features: ["Durable", "Waterproof", "Lightweight"],
+  specs: {
+    dimensions: {
+      height: 10,
+      width: 15,
+      depth: 5
+    },
+    weight: 2.5,
+    color: "blue"
+  },
+  inStock: true,
+  categories: ["electronics", "accessories"]
+}, null, 2);
+
+const demoRightJSON = JSON.stringify({
+  name: "Product A",
+  price: 24.99,
+  features: ["Durable", "Waterproof", "Eco-friendly"],
+  specs: {
+    dimensions: {
+      height: 10,
+      width: 15,
+      depth: 6
+    },
+    weight: 2.2,
+    color: "green"
+  },
+  inStock: true,
+  categories: ["electronics", "accessories", "outdoor"],
+  discount: 10
+}, null, 2);
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [leftJSON, setLeftJSON] = useState("");
+  const [rightJSON, setRightJSON] = useState("");
+  const [diffResult, setDiffResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [windowHeight, setWindowHeight] = useState(0);
+  const [showDiff, setShowDiff] = useState(false);
+  const leftEditorRef = useRef<HTMLDivElement>(null);
+  const rightEditorRef = useRef<HTMLDivElement>(null);
+  
+  // Initialize with demo data and update window height on mount and resize
+  useEffect(() => {
+    // Set demo data
+    setLeftJSON(demoLeftJSON);
+    setRightJSON(demoRightJSON);
+    
+    // Set initial window height
+    updateWindowHeight();
+    
+    // Add resize event listener
+    window.addEventListener('resize', updateWindowHeight);
+    
+    // Clean up event listener
+    return () => window.removeEventListener('resize', updateWindowHeight);
+  }, []);
+  
+  // Function to update window height
+  const updateWindowHeight = () => {
+    setWindowHeight(window.innerHeight);
+  };
+  
+  // Calculate textarea height based on window size (subtract space for other elements)
+  const getTextareaHeight = () => {
+    // Reserve space for header, buttons, margins, etc.
+    const reservedSpace = 250;
+    return Math.max(300, windowHeight - reservedSpace);
+  };
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const compareJSON = () => {
+    try {
+      // Parse JSON inputs
+      const leftObj = leftJSON ? JSON.parse(leftJSON) : {};
+      const rightObj = rightJSON ? JSON.parse(rightJSON) : {};
+      
+      // Generate diff
+      const diff = generateDiff(leftObj, rightObj);
+      setDiffResult(diff);
+      setShowDiff(true);
+      setError(null);
+    } catch (err) {
+      setError(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      setDiffResult(null);
+      setShowDiff(false);
+    }
+  };
+  
+  // Function to clear both input fields and results
+  const clearAll = () => {
+    setLeftJSON("");
+    setRightJSON("");
+    setDiffResult(null);
+    setError(null);
+    setShowDiff(false);
+  };
+  
+  // Function to reset to demo data
+  const resetToDemo = () => {
+    setLeftJSON(demoLeftJSON);
+    setRightJSON(demoRightJSON);
+    setDiffResult(null);
+    setError(null);
+    setShowDiff(false);
+  };
+
+  // Function to generate differences between two objects
+  const generateDiff = (left: any, right: any, path: string = "") => {
+    if (typeof left !== typeof right) {
+      return {
+        type: "changed",
+        path: path,
+        oldValue: left,
+        newValue: right
+      };
+    }
+
+    if (typeof left !== "object" || left === null || right === null) {
+      if (left === right) return null;
+      return {
+        type: "changed",
+        path: path,
+        oldValue: left,
+        newValue: right
+      };
+    }
+
+    // Handle arrays
+    if (Array.isArray(left) && Array.isArray(right)) {
+      const result: any[] = [];
+      
+      // Check items in both arrays
+      const maxLength = Math.max(left.length, right.length);
+      
+      for (let i = 0; i < maxLength; i++) {
+        const itemPath = path ? `${path}[${i}]` : `[${i}]`;
+        
+        if (i >= left.length) {
+          result.push({
+            type: "added",
+            path: itemPath,
+            value: right[i]
+          });
+        } else if (i >= right.length) {
+          result.push({
+            type: "removed",
+            path: itemPath,
+            value: left[i]
+          });
+        } else {
+          const diff = generateDiff(left[i], right[i], itemPath);
+          if (diff) {
+            if (Array.isArray(diff)) {
+              result.push(...diff);
+            } else {
+              result.push(diff);
+            }
+          }
+        }
+      }
+      
+      return result.length ? result : null;
+    }
+    
+    // Handle objects
+    const allKeys = Array.from(new Set([...Object.keys(left), ...Object.keys(right)]));
+    const result: any[] = [];
+    
+    for (const key of allKeys) {
+      const keyPath = path ? `${path}.${key}` : key;
+      
+      if (!(key in left)) {
+        result.push({
+          type: "added",
+          path: keyPath,
+          value: right[key]
+        });
+      } else if (!(key in right)) {
+        result.push({
+          type: "removed",
+          path: keyPath,
+          value: left[key]
+        });
+      } else {
+        const diff = generateDiff(left[key], right[key], keyPath);
+        if (diff) {
+          if (Array.isArray(diff)) {
+            result.push(...diff);
+          } else {
+            result.push(diff);
+          }
+        }
+      }
+    }
+    
+    return result.length ? result : null;
+  };
+
+  // Map diff results to highlighted lines
+  const getDiffMap = (diff: any) => {
+    if (!diff) return { left: {}, right: {} };
+    
+    const flatDiffs = Array.isArray(diff) ? diff : [diff];
+    const leftMap: Record<string, { type: string, value: any }> = {};
+    const rightMap: Record<string, { type: string, value: any }> = {};
+    
+    flatDiffs.forEach(item => {
+      const path = item.path;
+      
+      if (item.type === "added") {
+        rightMap[path] = { type: "added", value: item.value };
+      } else if (item.type === "removed") {
+        leftMap[path] = { type: "removed", value: item.value };
+      } else if (item.type === "changed") {
+        leftMap[path] = { type: "changed", value: item.oldValue };
+        rightMap[path] = { type: "changed", value: item.newValue };
+      }
+    });
+    
+    return { left: leftMap, right: rightMap };
+  };
+
+  // Function to find the paths in the JSON structure
+  const getPathsInJSON = (obj: any, currentPath = "", result: Record<string, { lineNumber: number, text: string }> = {}) => {
+    if (typeof obj !== 'object' || obj === null) {
+      // For primitive values at root level
+      if (currentPath === "") {
+        result[currentPath] = { lineNumber: 1, text: JSON.stringify(obj, null, 2) };
+      }
+      return result;
+    }
+    
+    const jsonLines = JSON.stringify(obj, null, 2).split('\n');
+    
+    // For objects/arrays, process each key/index
+    if (Array.isArray(obj)) {
+      obj.forEach((item, index) => {
+        const newPath = currentPath ? `${currentPath}[${index}]` : `[${index}]`;
+        if (typeof item === 'object' && item !== null) {
+          // For objects/arrays within array
+          result[newPath] = { 
+            lineNumber: jsonLines.findIndex(line => line.trim().startsWith(`{`) || line.trim().startsWith(`[`)) + 1,
+            text: typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)
+          };
+          getPathsInJSON(item, newPath, result);
+        } else {
+          // For primitives within array
+          const lineIdx = jsonLines.findIndex(line => line.includes(`${item}`));
+          result[newPath] = { 
+            lineNumber: lineIdx > -1 ? lineIdx + 1 : 1, 
+            text: typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)
+          };
+        }
+      });
+    } else {
+      // For objects
+      Object.entries(obj).forEach(([key, value]) => {
+        const newPath = currentPath ? `${currentPath}.${key}` : key;
+        if (typeof value === 'object' && value !== null) {
+          // For nested objects/arrays
+          const lineIdx = jsonLines.findIndex(line => line.includes(`"${key}"`));
+          result[newPath] = { 
+            lineNumber: lineIdx > -1 ? lineIdx + 1 : 1,
+            text: typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
+          };
+          getPathsInJSON(value, newPath, result);
+        } else {
+          // For primitive values
+          const lineIdx = jsonLines.findIndex(line => line.includes(`"${key}"`));
+          result[newPath] = { 
+            lineNumber: lineIdx > -1 ? lineIdx + 1 : 1,
+            text: typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
+          };
+        }
+      });
+    }
+    
+    return result;
+  };
+
+  // Render JSON with highlighting for differences
+  const renderHighlightedJSON = (jsonStr: string, isLeft: boolean) => {
+    if (!jsonStr) return <div className="text-gray-400">Paste your JSON here...</div>;
+    
+    try {
+      const jsonObj = JSON.parse(jsonStr);
+      const diffMap = diffResult ? getDiffMap(diffResult) : { left: {}, right: {} };
+      const relevantMap = isLeft ? diffMap.left : diffMap.right;
+      
+      // Get paths and line numbers in the JSON
+      const pathMap = getPathsInJSON(jsonObj);
+      
+      const jsonLines = jsonStr.split('\n');
+      
+      return (
+        <div className="font-mono text-sm whitespace-pre">
+          {jsonLines.map((line, i) => {
+            // Find if this line corresponds to any diff path
+            const matchingPath = Object.keys(pathMap).find(path => {
+              return pathMap[path].lineNumber === i + 1 && relevantMap[path];
+            });
+            
+            const diffType = matchingPath ? relevantMap[matchingPath].type : null;
+            
+            let bgClass = "";
+            if (diffType === "added") {
+              bgClass = "bg-green-100 dark:bg-green-900/20";
+            } else if (diffType === "removed") {
+              bgClass = "bg-red-100 dark:bg-red-900/20";
+            } else if (diffType === "changed") {
+              bgClass = "bg-yellow-100 dark:bg-yellow-900/20";
+            }
+            
+            return (
+              <div key={i} className={`py-0.5 px-1 ${bgClass}`}>
+                {line}
+              </div>
+            );
+          })}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      );
+    } catch (err) {
+      return <div className="font-mono text-sm whitespace-pre">{jsonStr}</div>;
+    }
+  };
+
+  return (
+    <div className="container mx-auto p-4 h-screen flex flex-col">
+      <h1 className="text-3xl font-bold text-center mb-4">JSON Diff Tool</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 flex-grow">
+        <div className="flex flex-col">
+          <label htmlFor="leftJSON" className="block text-sm font-medium mb-2">
+            Left JSON
+          </label>
+          {showDiff ? (
+            <div 
+              ref={leftEditorRef}
+              className="w-full flex-grow p-3 border rounded bg-white dark:bg-gray-900 overflow-auto" 
+              style={{ height: `${getTextareaHeight()}px` }}
+            >
+              {renderHighlightedJSON(leftJSON, true)}
+            </div>
+          ) : (
+            <textarea
+              id="leftJSON"
+              className="w-full flex-grow p-3 border rounded font-mono text-sm bg-gray-50 dark:bg-gray-900"
+              style={{ height: `${getTextareaHeight()}px` }}
+              placeholder="Paste your JSON here..."
+              value={leftJSON}
+              onChange={(e) => setLeftJSON(e.target.value)}
+            />
+          )}
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="rightJSON" className="block text-sm font-medium mb-2">
+            Right JSON
+          </label>
+          {showDiff ? (
+            <div 
+              ref={rightEditorRef}
+              className="w-full flex-grow p-3 border rounded bg-white dark:bg-gray-900 overflow-auto" 
+              style={{ height: `${getTextareaHeight()}px` }}
+            >
+              {renderHighlightedJSON(rightJSON, false)}
+            </div>
+          ) : (
+            <textarea
+              id="rightJSON"
+              className="w-full flex-grow p-3 border rounded font-mono text-sm bg-gray-50 dark:bg-gray-900"
+              style={{ height: `${getTextareaHeight()}px` }}
+              placeholder="Paste your JSON here..."
+              value={rightJSON}
+              onChange={(e) => setRightJSON(e.target.value)}
+            />
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-center gap-4 mb-4">
+        <button
+          onClick={compareJSON}
+          className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Compare JSON
+        </button>
+        <button
+          onClick={() => setShowDiff(false)}
+          className={`px-6 py-2 ${showDiff ? 'bg-yellow-600 text-white' : 'bg-gray-300 text-gray-700'} rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition-colors`}
+          disabled={!showDiff}
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Edit Mode
+        </button>
+        <button
+          onClick={clearAll}
+          className="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors"
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Clear All
+        </button>
+        <button
+          onClick={resetToDemo}
+          className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors"
+        >
+          Load Demo Data
+        </button>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400">
+          {error}
+        </div>
+      )}
     </div>
   );
 }

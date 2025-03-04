@@ -63,8 +63,12 @@ export default function Home() {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setDarkMode(prefersDark);
       
-      // Apply initial theme
-      document.documentElement.classList.toggle('dark', prefersDark);
+      // Apply dark mode class to html element
+      if (prefersDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
     
     // Add resize event listener
@@ -76,8 +80,15 @@ export default function Home() {
   
   // Toggle between light and dark mode
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark', !darkMode);
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    
+    // Apply dark mode class to html element for Tailwind
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   // Function to update window height
@@ -349,108 +360,110 @@ export default function Home() {
   };
 
   return (
-    <div className={`container mx-auto p-4 h-screen flex flex-col ${darkMode ? 'dark bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold text-center">JSON Diff Tool</h1>
-        <button
-          onClick={toggleDarkMode}
-          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-          aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-        >
-          {darkMode ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-          )}
-        </button>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 flex-grow">
-        <div className="flex flex-col">
-          <label htmlFor="leftJSON" className="block text-sm font-medium mb-2">
-            Left JSON
-          </label>
-          {showDiff ? (
-            <div 
-              ref={leftEditorRef}
-              className="w-full flex-grow p-3 border rounded bg-white dark:bg-gray-800 overflow-auto" 
-              style={{ height: `${getTextareaHeight()}px` }}
-            >
-              {renderHighlightedJSON(leftJSON, true)}
-            </div>
-          ) : (
-            <textarea
-              id="leftJSON"
-              className="w-full flex-grow p-3 border rounded font-mono text-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              style={{ height: `${getTextareaHeight()}px` }}
-              placeholder="Paste your JSON here..."
-              value={leftJSON}
-              onChange={(e) => setLeftJSON(e.target.value)}
-            />
-          )}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+      <div className="container mx-auto p-4 h-screen flex flex-col">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold text-center text-gray-900 dark:text-white">JSON Diff Tool</h1>
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {darkMode ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+          </button>
         </div>
-        <div className="flex flex-col">
-          <label htmlFor="rightJSON" className="block text-sm font-medium mb-2">
-            Right JSON
-          </label>
-          {showDiff ? (
-            <div 
-              ref={rightEditorRef}
-              className="w-full flex-grow p-3 border rounded bg-white dark:bg-gray-800 overflow-auto" 
-              style={{ height: `${getTextareaHeight()}px` }}
-            >
-              {renderHighlightedJSON(rightJSON, false)}
-            </div>
-          ) : (
-            <textarea
-              id="rightJSON"
-              className="w-full flex-grow p-3 border rounded font-mono text-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              style={{ height: `${getTextareaHeight()}px` }}
-              placeholder="Paste your JSON here..."
-              value={rightJSON}
-              onChange={(e) => setRightJSON(e.target.value)}
-            />
-          )}
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 flex-grow">
+          <div className="flex flex-col">
+            <label htmlFor="leftJSON" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+              Left JSON
+            </label>
+            {showDiff ? (
+              <div 
+                ref={leftEditorRef}
+                className="w-full flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 overflow-auto text-gray-900 dark:text-gray-100" 
+                style={{ height: `${getTextareaHeight()}px` }}
+              >
+                {renderHighlightedJSON(leftJSON, true)}
+              </div>
+            ) : (
+              <textarea
+                id="leftJSON"
+                className="w-full flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded font-mono text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                style={{ height: `${getTextareaHeight()}px` }}
+                placeholder="Paste your JSON here..."
+                value={leftJSON}
+                onChange={(e) => setLeftJSON(e.target.value)}
+              />
+            )}
+          </div>
+          <div className="flex flex-col">
+            <label htmlFor="rightJSON" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+              Right JSON
+            </label>
+            {showDiff ? (
+              <div 
+                ref={rightEditorRef}
+                className="w-full flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 overflow-auto text-gray-900 dark:text-gray-100" 
+                style={{ height: `${getTextareaHeight()}px` }}
+              >
+                {renderHighlightedJSON(rightJSON, false)}
+              </div>
+            ) : (
+              <textarea
+                id="rightJSON"
+                className="w-full flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded font-mono text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                style={{ height: `${getTextareaHeight()}px` }}
+                placeholder="Paste your JSON here..."
+                value={rightJSON}
+                onChange={(e) => setRightJSON(e.target.value)}
+              />
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="flex justify-center gap-4 mb-4 flex-wrap">
-        <button
-          onClick={compareJSON}
-          className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
-        >
-          Compare JSON
-        </button>
-        <button
-          onClick={() => setShowDiff(false)}
-          className={`px-6 py-2 ${showDiff ? 'bg-yellow-600 text-white' : 'bg-gray-300 text-gray-700'} rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition-colors`}
-          disabled={!showDiff}
-        >
-          Edit Mode
-        </button>
-        <button
-          onClick={clearAll}
-          className="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors"
-        >
-          Clear All
-        </button>
-        <button
-          onClick={resetToDemo}
-          className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors"
-        >
-          Load Demo Data
-        </button>
-      </div>
-
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400">
-          {error}
+        <div className="flex justify-center gap-4 mb-4 flex-wrap">
+          <button
+            onClick={compareJSON}
+            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+          >
+            Compare JSON
+          </button>
+          <button
+            onClick={() => setShowDiff(false)}
+            className={`px-6 py-2 ${showDiff ? 'bg-yellow-600 text-white' : 'bg-gray-300 text-gray-700 dark:bg-gray-700 dark:text-gray-300'} rounded hover:bg-yellow-700 dark:hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition-colors`}
+            disabled={!showDiff}
+          >
+            Edit Mode
+          </button>
+          <button
+            onClick={clearAll}
+            className="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors"
+          >
+            Clear All
+          </button>
+          <button
+            onClick={resetToDemo}
+            className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors"
+          >
+            Load Demo Data
+          </button>
         </div>
-      )}
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400">
+            {error}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

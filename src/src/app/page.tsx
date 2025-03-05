@@ -42,68 +42,59 @@ export default function Home() {
   // 从localStorage获取初始主题状态
   const getInitialTheme = () => {
     // 注意：此函数在服务器端渲染时不能访问localStorage
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('theme');
-      console.log(`savedTheme: ${savedTheme}`);
-      
-      // 如果localStorage中有值，使用它
-      if (savedTheme == 'dark') return true;
-      if (savedTheme == 'light') return false;
-      
-      // 如果没有存储的值，检查系统偏好
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return true;
-      }
-      
-      // 如果没有明确设置且系统无偏好，默认使用深色模式
-      return true;
-    }
-    // 服务器端渲染默认使用深色模式
+    const savedTheme = localStorage.getItem('theme');
+    console.log(`savedTheme: ${savedTheme}`);
+
+    // 如果localStorage中有值，使用它
+    if (savedTheme == 'dark') return true;
+    if (savedTheme == 'light') return false;
+
+    // 如果没有明确设置且系统无偏好，默认使用深色模式
     return true;
   };
-  
+
   const [leftJSON, setLeftJSON] = useState("");
   const [rightJSON, setRightJSON] = useState("");
   const [diffResult, setDiffResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [windowHeight, setWindowHeight] = useState(0);
   const [showDiff, setShowDiff] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  // const [isDarkMode, setIsDarkMode] = useState(getInitialTheme());
+  // const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(getInitialTheme());
   const leftEditorRef = useRef<HTMLDivElement>(null);
   const rightEditorRef = useRef<HTMLDivElement>(null);
-  
+
   // Initialize with demo data and update window height on mount and resize
   useEffect(() => {
     // Set demo data
     setLeftJSON(demoLeftJSON);
     setRightJSON(demoRightJSON);
-    
+
     // Set initial window height
     updateWindowHeight();
-    
+
     // 确保深色模式状态同步到DOM
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-    
+
     // Add resize event listener
     window.addEventListener('resize', updateWindowHeight);
-    
+
     // Clean up event listener
     return () => window.removeEventListener('resize', updateWindowHeight);
   }, [isDarkMode]);
-  
+
   // Toggle between light and dark mode
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
-    
+
     // 只有当用户明确切换主题时，才存储到localStorage
     localStorage.setItem('theme', newMode ? 'dark' : 'light');
-    
+
     // DOM类名的更新会通过useEffect处理
   };
 
@@ -111,11 +102,11 @@ export default function Home() {
   const updateWindowHeight = () => {
     setWindowHeight(window.innerHeight);
   };
-  
+
   // Calculate textarea height based on window size (subtract space for other elements)
   const getTextareaHeight = () => {
     // Reserve space for header, buttons, margins, etc.
-    const reservedSpace = 250;
+    const reservedSpace = 220;
     return Math.max(300, windowHeight - reservedSpace);
   };
 
@@ -124,7 +115,7 @@ export default function Home() {
       // Parse JSON inputs
       const leftObj = leftJSON ? JSON.parse(leftJSON) : {};
       const rightObj = rightJSON ? JSON.parse(rightJSON) : {};
-      
+
       // Generate diff
       const diff = generateDiff(leftObj, rightObj);
       setDiffResult(diff);
@@ -136,7 +127,7 @@ export default function Home() {
       setShowDiff(false);
     }
   };
-  
+
   // Function to clear both input fields and results
   const clearAll = () => {
     setLeftJSON("");
@@ -145,7 +136,7 @@ export default function Home() {
     setError(null);
     setShowDiff(false);
   };
-  
+
   // Function to reset to demo data
   const resetToDemo = () => {
     setLeftJSON(demoLeftJSON);
@@ -179,13 +170,13 @@ export default function Home() {
     // Handle arrays
     if (Array.isArray(left) && Array.isArray(right)) {
       const result: any[] = [];
-      
+
       // Check items in both arrays
       const maxLength = Math.max(left.length, right.length);
-      
+
       for (let i = 0; i < maxLength; i++) {
         const itemPath = path ? `${path}[${i}]` : `[${i}]`;
-        
+
         if (i >= left.length) {
           result.push({
             type: "added",
@@ -209,17 +200,17 @@ export default function Home() {
           }
         }
       }
-      
+
       return result.length ? result : null;
     }
-    
+
     // Handle objects
     const allKeys = Array.from(new Set([...Object.keys(left), ...Object.keys(right)]));
     const result: any[] = [];
-    
+
     for (const key of allKeys) {
       const keyPath = path ? `${path}.${key}` : key;
-      
+
       if (!(key in left)) {
         result.push({
           type: "added",
@@ -243,21 +234,21 @@ export default function Home() {
         }
       }
     }
-    
+
     return result.length ? result : null;
   };
 
   // Map diff results to highlighted lines
   const getDiffMap = (diff: any) => {
     if (!diff) return { left: {}, right: {} };
-    
+
     const flatDiffs = Array.isArray(diff) ? diff : [diff];
     const leftMap: Record<string, { type: string, value: any }> = {};
     const rightMap: Record<string, { type: string, value: any }> = {};
-    
+
     flatDiffs.forEach(item => {
       const path = item.path;
-      
+
       if (item.type === "added") {
         rightMap[path] = { type: "added", value: item.value };
       } else if (item.type === "removed") {
@@ -267,7 +258,7 @@ export default function Home() {
         rightMap[path] = { type: "changed", value: item.newValue };
       }
     });
-    
+
     return { left: leftMap, right: rightMap };
   };
 
@@ -280,16 +271,16 @@ export default function Home() {
       }
       return result;
     }
-    
+
     const jsonLines = JSON.stringify(obj, null, 2).split('\n');
-    
+
     // For objects/arrays, process each key/index
     if (Array.isArray(obj)) {
       obj.forEach((item, index) => {
         const newPath = currentPath ? `${currentPath}[${index}]` : `[${index}]`;
         if (typeof item === 'object' && item !== null) {
           // For objects/arrays within array
-          result[newPath] = { 
+          result[newPath] = {
             lineNumber: jsonLines.findIndex(line => line.trim().startsWith(`{`) || line.trim().startsWith(`[`)) + 1,
             text: typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)
           };
@@ -297,8 +288,8 @@ export default function Home() {
         } else {
           // For primitives within array
           const lineIdx = jsonLines.findIndex(line => line.includes(`${item}`));
-          result[newPath] = { 
-            lineNumber: lineIdx > -1 ? lineIdx + 1 : 1, 
+          result[newPath] = {
+            lineNumber: lineIdx > -1 ? lineIdx + 1 : 1,
             text: typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)
           };
         }
@@ -310,7 +301,7 @@ export default function Home() {
         if (typeof value === 'object' && value !== null) {
           // For nested objects/arrays
           const lineIdx = jsonLines.findIndex(line => line.includes(`"${key}"`));
-          result[newPath] = { 
+          result[newPath] = {
             lineNumber: lineIdx > -1 ? lineIdx + 1 : 1,
             text: typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
           };
@@ -318,31 +309,31 @@ export default function Home() {
         } else {
           // For primitive values
           const lineIdx = jsonLines.findIndex(line => line.includes(`"${key}"`));
-          result[newPath] = { 
+          result[newPath] = {
             lineNumber: lineIdx > -1 ? lineIdx + 1 : 1,
             text: typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
           };
         }
       });
     }
-    
+
     return result;
   };
 
   // Render JSON with highlighting for differences
   const renderHighlightedJSON = (jsonStr: string, isLeft: boolean) => {
     if (!jsonStr) return <div style={{ color: isDarkMode ? '#A0AEC0' : '#718096' }}>Paste your JSON here...</div>;
-    
+
     try {
       const jsonObj = JSON.parse(jsonStr);
       const diffMap = diffResult ? getDiffMap(diffResult) : { left: {}, right: {} };
       const relevantMap = isLeft ? diffMap.left : diffMap.right;
-      
+
       // Get paths and line numbers in the JSON
       const pathMap = getPathsInJSON(jsonObj);
-      
+
       const jsonLines = jsonStr.split('\n');
-      
+
       return (
         <div className="font-mono text-sm whitespace-pre">
           {jsonLines.map((line, i) => {
@@ -350,13 +341,13 @@ export default function Home() {
             const matchingPath = Object.keys(pathMap).find(path => {
               return pathMap[path].lineNumber === i + 1 && relevantMap[path];
             });
-            
+
             const diffType = matchingPath ? relevantMap[matchingPath].type : null;
-            
+
             // Define styles based on diff type and dark mode
             let style: React.CSSProperties = {};
             let className = "py-1 px-2 ";
-            
+
             if (diffType === "added") {
               style = {
                 backgroundColor: isDarkMode ? '#2F855A' : '#C6F6D5',
@@ -376,7 +367,7 @@ export default function Home() {
                 borderLeft: '4px solid #ECC94B'
               };
             }
-            
+
             return (
               <div key={i} className={className} style={style}>
                 {line}
@@ -434,9 +425,94 @@ export default function Home() {
 
   return (
     <div style={styles.container}>
-      <div className="container mx-auto p-4 h-screen flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-center" style={styles.header}>JSON Diff Tool</h1>
+      <div className="container mx-auto p-2 h-screen flex flex-col max-w-full">
+        
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3 flex-grow">
+          <div className="flex flex-col">
+            <label htmlFor="leftJSON" className="block text-sm font-medium mb-1" style={styles.label}>
+              Left JSON
+            </label>
+            {showDiff ? (
+              <div
+                ref={leftEditorRef}
+                className="w-full flex-grow p-2 rounded overflow-auto"
+                style={{ ...styles.editor, height: `${getTextareaHeight()}px` }}
+              >
+                {renderHighlightedJSON(leftJSON, true)}
+              </div>
+            ) : (
+              <textarea
+                id="leftJSON"
+                className="w-full flex-grow p-2 rounded font-mono text-sm"
+                style={{ ...styles.editor, height: `${getTextareaHeight()}px` }}
+                placeholder="Paste your JSON here..."
+                value={leftJSON}
+                onChange={(e) => setLeftJSON(e.target.value)}
+              />
+            )}
+          </div>
+          <div className="flex flex-col">
+            <label htmlFor="rightJSON" className="block text-sm font-medium mb-1" style={styles.label}>
+              Right JSON
+            </label>
+            {showDiff ? (
+              <div
+                ref={rightEditorRef}
+                className="w-full flex-grow p-2 rounded overflow-auto"
+                style={{ ...styles.editor, height: `${getTextareaHeight()}px` }}
+              >
+                {renderHighlightedJSON(rightJSON, false)}
+              </div>
+            ) : (
+              <textarea
+                id="rightJSON"
+                className="w-full flex-grow p-2 rounded font-mono text-sm"
+                style={{ ...styles.editor, height: `${getTextareaHeight()}px` }}
+                placeholder="Paste your JSON here..."
+                value={rightJSON}
+                onChange={(e) => setRightJSON(e.target.value)}
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-center gap-3 mb-3 flex-wrap">
+          <button
+            onClick={compareJSON}
+            className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+            style={styles.buttonPrimary}
+          >
+            Compare JSON
+          </button>
+          <button
+            onClick={() => setShowDiff(false)}
+            className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+            style={{
+              ...styles.buttonSecondary,
+              backgroundColor: showDiff ? '#D69E2E' : isDarkMode ? '#4A5568' : '#E2E8F0',
+              color: showDiff ? 'white' : (isDarkMode ? '#E2E8F0' : '#4A5568'),
+              opacity: showDiff ? 1 : 0.5,
+              cursor: showDiff ? 'pointer' : 'not-allowed'
+            }}
+            disabled={!showDiff}
+          >
+            Edit Mode
+          </button>
+          <button
+            onClick={clearAll}
+            className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+            style={styles.buttonDanger}
+          >
+            Clear All
+          </button>
+          <button
+            onClick={resetToDemo}
+            className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+            style={styles.buttonSuccess}
+          >
+            Load Demo Data
+          </button>
           <button
             onClick={toggleDarkMode}
             className="p-2 rounded-full hover:opacity-80"
@@ -452,93 +528,6 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             )}
-          </button>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 flex-grow">
-          <div className="flex flex-col">
-            <label htmlFor="leftJSON" className="block text-sm font-medium mb-2" style={styles.label}>
-              Left JSON
-            </label>
-            {showDiff ? (
-              <div 
-                ref={leftEditorRef}
-                className="w-full flex-grow p-3 rounded overflow-auto" 
-                style={{...styles.editor, height: `${getTextareaHeight()}px` }}
-              >
-                {renderHighlightedJSON(leftJSON, true)}
-              </div>
-            ) : (
-              <textarea
-                id="leftJSON"
-                className="w-full flex-grow p-3 rounded font-mono text-sm"
-                style={{...styles.editor, height: `${getTextareaHeight()}px` }}
-                placeholder="Paste your JSON here..."
-                value={leftJSON}
-                onChange={(e) => setLeftJSON(e.target.value)}
-              />
-            )}
-          </div>
-          <div className="flex flex-col">
-            <label htmlFor="rightJSON" className="block text-sm font-medium mb-2" style={styles.label}>
-              Right JSON
-            </label>
-            {showDiff ? (
-              <div 
-                ref={rightEditorRef}
-                className="w-full flex-grow p-3 rounded overflow-auto" 
-                style={{...styles.editor, height: `${getTextareaHeight()}px` }}
-              >
-                {renderHighlightedJSON(rightJSON, false)}
-              </div>
-            ) : (
-              <textarea
-                id="rightJSON"
-                className="w-full flex-grow p-3 rounded font-mono text-sm"
-                style={{...styles.editor, height: `${getTextareaHeight()}px` }}
-                placeholder="Paste your JSON here..."
-                value={rightJSON}
-                onChange={(e) => setRightJSON(e.target.value)}
-              />
-            )}
-          </div>
-        </div>
-
-        <div className="flex justify-center gap-4 mb-4 flex-wrap">
-          <button
-            onClick={compareJSON}
-            className="px-6 py-2 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
-            style={styles.buttonPrimary}
-          >
-            Compare JSON
-          </button>
-          <button
-            onClick={() => setShowDiff(false)}
-            className="px-6 py-2 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
-            style={{ 
-              ...styles.buttonSecondary,
-              backgroundColor: showDiff ? '#D69E2E' : isDarkMode ? '#4A5568' : '#E2E8F0',
-              color: showDiff ? 'white' : (isDarkMode ? '#E2E8F0' : '#4A5568'),
-              opacity: showDiff ? 1 : 0.5,
-              cursor: showDiff ? 'pointer' : 'not-allowed'
-            }}
-            disabled={!showDiff}
-          >
-            Edit Mode
-          </button>
-          <button
-            onClick={clearAll}
-            className="px-6 py-2 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
-            style={styles.buttonDanger}
-          >
-            Clear All
-          </button>
-          <button
-            onClick={resetToDemo}
-            className="px-6 py-2 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
-            style={styles.buttonSuccess}
-          >
-            Load Demo Data
           </button>
         </div>
 

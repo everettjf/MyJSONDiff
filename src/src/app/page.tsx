@@ -272,41 +272,90 @@ export default function Home() {
 
     // For objects/arrays, process each key/index
     if (Array.isArray(obj)) {
+      // Track the current line position within the array
+      let currentLinePosition = 0;
+
       obj.forEach((item, index) => {
         const newPath = currentPath ? `${currentPath}[${index}]` : `[${index}]`;
+        
         if (typeof item === 'object' && item !== null) {
           // For objects/arrays within array
+          // Find the line that likely starts this object/array
+          let lineIdx = -1;
+          for (let i = currentLinePosition; i < jsonLines.length; i++) {
+            if (jsonLines[i].trim().startsWith('{') || jsonLines[i].trim().startsWith('[')) {
+              lineIdx = i;
+              currentLinePosition = i + 1; // Move past this line
+              break;
+            }
+          }
+          
           result[newPath] = {
-            lineNumber: jsonLines.findIndex(line => line.trim().startsWith(`{`) || line.trim().startsWith(`[`)) + 1,
+            lineNumber: lineIdx > -1 ? lineIdx + 1 : currentLinePosition + 1,
             text: typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)
           };
+          
           getPathsInJSON(item, newPath, result);
         } else {
-          // For primitives within array
-          const lineIdx = jsonLines.findIndex(line => line.includes(`${item}`));
+          // For primitives within array, using a more precise approach
+          let lineIdx = -1;
+          const itemStr = JSON.stringify(item);
+          
+          // Look for the exact item starting from the current position
+          for (let i = currentLinePosition; i < jsonLines.length; i++) {
+            const line = jsonLines[i].trim();
+            // Match the line that contains exactly this item (with possible comma)
+            if (line === itemStr || line === itemStr + ',') {
+              lineIdx = i;
+              currentLinePosition = i + 1; // Move past this line
+              break;
+            }
+          }
+          
           result[newPath] = {
-            lineNumber: lineIdx > -1 ? lineIdx + 1 : 1,
+            lineNumber: lineIdx > -1 ? lineIdx + 1 : currentLinePosition + 1,
             text: typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)
           };
         }
       });
     } else {
       // For objects
+      let currentLinePosition = 0;
+      
       Object.entries(obj).forEach(([key, value]) => {
         const newPath = currentPath ? `${currentPath}.${key}` : key;
+        
         if (typeof value === 'object' && value !== null) {
           // For nested objects/arrays
-          const lineIdx = jsonLines.findIndex(line => line.includes(`"${key}"`));
+          let lineIdx = -1;
+          // Find the line with this key
+          for (let i = currentLinePosition; i < jsonLines.length; i++) {
+            if (jsonLines[i].includes(`"${key}"`)) {
+              lineIdx = i;
+              currentLinePosition = i + 1; // Move past this line
+              break;
+            }
+          }
+          
           result[newPath] = {
-            lineNumber: lineIdx > -1 ? lineIdx + 1 : 1,
+            lineNumber: lineIdx > -1 ? lineIdx + 1 : currentLinePosition + 1,
             text: typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
           };
+          
           getPathsInJSON(value, newPath, result);
         } else {
           // For primitive values
-          const lineIdx = jsonLines.findIndex(line => line.includes(`"${key}"`));
+          let lineIdx = -1;
+          for (let i = currentLinePosition; i < jsonLines.length; i++) {
+            if (jsonLines[i].includes(`"${key}"`)) {
+              lineIdx = i;
+              currentLinePosition = i + 1; // Move past this line
+              break;
+            }
+          }
+          
           result[newPath] = {
-            lineNumber: lineIdx > -1 ? lineIdx + 1 : 1,
+            lineNumber: lineIdx > -1 ? lineIdx + 1 : currentLinePosition + 1,
             text: typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
           };
         }
@@ -330,9 +379,34 @@ export default function Home() {
 
       const jsonLines = jsonStr.split('\n');
 
+      // 识别属于数组或对象的开始和结束行
+      const arrayBracketLines = new Set<number>();
+      jsonLines.forEach((line, i) => {
+        const trimmed = line.trim();
+        // 检查是否是数组或对象的开始/结束行
+        if (trimmed === '[' || trimmed === '{' || 
+            trimmed === ']' || trimmed === '}' || 
+            trimmed === '],' || trimmed === '},') {
+          arrayBracketLines.add(i);
+        }
+        // 检查是否包含键名并以 [ 或 { 结尾的行（如 "features": [）
+        if (/".+"\s*:\s*[\[\{]$/.test(trimmed)) {
+          arrayBracketLines.add(i);
+        }
+      });
+
       return (
         <div className="font-mono text-sm whitespace-pre">
           {jsonLines.map((line, i) => {
+            // 跳过对数组和对象开始/结束行的高亮
+            if (arrayBracketLines.has(i)) {
+              return (
+                <div key={i} className="py-1 px-2">
+                  {line}
+                </div>
+              );
+            }
+            
             // Find if this line corresponds to any diff path
             const matchingPath = Object.keys(pathMap).find(path => {
               return pathMap[path].lineNumber === i + 1 && relevantMap[path];

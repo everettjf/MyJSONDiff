@@ -432,8 +432,8 @@ export default function Home() {
       // Track bracket/brace structure to properly identify structural elements
       const structuralLines = new Set<number>();
       
-      // Track nested object/array paths to highlight full structures when needed
-      const structurePaths: Record<number, string> = {};
+      // Track array items for highlighting
+      const arrayItemLines = new Map<number, { type: string, value: any }>();
       
       jsonLines.forEach((line, i) => {
         const trimmed = line.trim();
@@ -445,23 +445,62 @@ export default function Home() {
           structuralLines.add(i);
         }
         
-        // Check for key definitions with array/object start
-        if (/".+"\s*:\s*[\[\{]$/.test(trimmed)) {
-          structuralLines.add(i);
+        // Check for array items (strings in arrays)
+        if (trimmed.startsWith('"') && 
+            (trimmed.endsWith('",') || trimmed.endsWith('"')) && 
+            !trimmed.includes('":')) {
+          // Extract the string value
+          const stringValue = trimmed.replace(/^"|"$/g, '').replace(/",$/g, '');
           
-          // Extract the key name for potential path matching
-          const keyMatch = trimmed.match(/"(.+)"\s*:/);
-          if (keyMatch && keyMatch[1]) {
-            const key = keyMatch[1];
-            // Store this for potential path lookup
-            structurePaths[i] = key;
-          }
+          // Check if this string appears in any array paths in the diff
+          Object.entries(relevantMap).forEach(([path, diff]) => {
+            if (path.includes('[') && 
+                (diff.value === stringValue || 
+                 (typeof diff.value === 'string' && diff.value.trim() === stringValue.trim()))) {
+              arrayItemLines.set(i, { type: diff.type, value: stringValue });
+            }
+          });
         }
       });
 
       return (
         <div className="font-mono text-sm whitespace-pre">
           {jsonLines.map((line, i) => {
+            // Handle array items first
+            if (arrayItemLines.has(i)) {
+              const { type } = arrayItemLines.get(i)!;
+              let style: React.CSSProperties = {};
+              
+              if (type === "added") {
+                style = {
+                  backgroundColor: isDarkMode ? '#2F855A' : '#C6F6D5',
+                  color: isDarkMode ? '#FFFFFF' : '#22543D',
+                  borderLeft: '4px solid #48BB78'
+                };
+              } else if (type === "removed") {
+                style = {
+                  backgroundColor: isDarkMode ? '#9B2C2C' : '#FED7D7',
+                  color: isDarkMode ? '#FFFFFF' : '#9B2C2C',
+                  borderLeft: '4px solid #F56565'
+                };
+              }
+              
+              return (
+                <div key={i} className="py-1 px-2" style={style}>
+                  {line}
+                </div>
+              );
+            }
+
+            // Handle structural elements
+            if (structuralLines.has(i)) {
+              return (
+                <div key={i} className="py-1 px-2">
+                  {line}
+                </div>
+              );
+            }
+            
             // Find if this line corresponds to any diff path
             const matchingPath = Object.keys(pathMap).find(path => {
               return pathMap[path].lineNumber === i + 1 && relevantMap[path];
@@ -469,53 +508,6 @@ export default function Home() {
 
             const diffType = matchingPath ? relevantMap[matchingPath].type : null;
 
-            // Special case for structural elements (brackets/braces)
-            if (structuralLines.has(i)) {
-              // Check if this structural line belongs to a changed path
-              let structureStyle: React.CSSProperties = {};
-              let structureDiffType = null;
-              
-              // If this is a structural element, check if its parent path is in the diff
-              const keyInLine = structurePaths[i];
-              if (keyInLine) {
-                // Try to find its parent path in the diff
-                const parentPath = Object.keys(pathMap).find(path => 
-                  path.endsWith(`.${keyInLine}`) || path === keyInLine
-                );
-                
-                if (parentPath && relevantMap[parentPath]) {
-                  structureDiffType = relevantMap[parentPath].type;
-                }
-              }
-              
-              // Apply style based on whether the structure is part of a diff
-              if (structureDiffType === "added") {
-                structureStyle = {
-                  backgroundColor: isDarkMode ? 'rgba(47, 133, 90, 0.5)' : 'rgba(198, 246, 213, 0.5)',
-                  color: isDarkMode ? '#FFFFFF' : '#22543D',
-                  borderLeft: '4px solid rgba(72, 187, 120, 0.5)'
-                };
-              } else if (structureDiffType === "removed") {
-                structureStyle = {
-                  backgroundColor: isDarkMode ? 'rgba(155, 44, 44, 0.5)' : 'rgba(254, 215, 215, 0.5)',
-                  color: isDarkMode ? '#FFFFFF' : '#9B2C2C',
-                  borderLeft: '4px solid rgba(245, 101, 101, 0.5)'
-                };
-              } else if (structureDiffType === "changed") {
-                structureStyle = {
-                  backgroundColor: isDarkMode ? 'rgba(116, 66, 16, 0.5)' : 'rgba(254, 252, 191, 0.5)',
-                  color: isDarkMode ? '#FFFFFF' : '#744210',
-                  borderLeft: '4px solid rgba(236, 201, 75, 0.5)'
-                };
-              }
-              
-              return (
-                <div key={i} className="py-1 px-2" style={structureStyle}>
-                  {line}
-                </div>
-              );
-            }
-            
             // Define styles based on diff type and dark mode
             let style: React.CSSProperties = {};
             let className = "py-1 px-2 ";

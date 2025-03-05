@@ -32,9 +32,9 @@
       "icons/icon.ico"
     ],
     "macOS": {
-      "signingIdentity": "iPhone Distribution: Feng Zhu (SU4WK7V467)",
+      "signingIdentity": "3rd Party Mac Developer Application: Feng Zhu (SU4WK7V467)",
       "files": {
-        "embedded.provisionprofile": "./app.mobileprovision"
+        "embedded.provisionprofile": "./app.provisionprofile"
       },
       "entitlements": "./Entitlements.plist",
       "minimumSystemVersion": "15.0"

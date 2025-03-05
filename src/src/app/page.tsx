@@ -39,13 +39,35 @@ const demoRightJSON = JSON.stringify({
 }, null, 2);
 
 export default function Home() {
+  // 从localStorage获取初始主题状态
+  const getInitialTheme = () => {
+    // 注意：此函数在服务器端渲染时不能访问localStorage
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme');
+      
+      // 如果localStorage中有值，使用它
+      if (savedTheme === 'dark') return true;
+      if (savedTheme === 'light') return false;
+      
+      // 如果没有存储的值，检查系统偏好
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return true;
+      }
+      
+      // 如果没有明确设置且系统无偏好，默认使用深色模式
+      return true;
+    }
+    // 服务器端渲染默认使用深色模式
+    return true;
+  };
+  
   const [leftJSON, setLeftJSON] = useState("");
   const [rightJSON, setRightJSON] = useState("");
   const [diffResult, setDiffResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [windowHeight, setWindowHeight] = useState(0);
   const [showDiff, setShowDiff] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(getInitialTheme());
   const leftEditorRef = useRef<HTMLDivElement>(null);
   const rightEditorRef = useRef<HTMLDivElement>(null);
   
@@ -58,17 +80,11 @@ export default function Home() {
     // Set initial window height
     updateWindowHeight();
     
-    // Detect system preference for dark mode
-    if (typeof window !== 'undefined') {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setDarkMode(prefersDark);
-      
-      // Apply dark mode class to html element
-      if (prefersDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+    // 确保深色模式状态同步到DOM
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
     
     // Add resize event listener
@@ -76,19 +92,17 @@ export default function Home() {
     
     // Clean up event listener
     return () => window.removeEventListener('resize', updateWindowHeight);
-  }, []);
+  }, [isDarkMode]);
   
   // Toggle between light and dark mode
   const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
     
-    // Apply dark mode class to html element for Tailwind
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    // 只有当用户明确切换主题时，才存储到localStorage
+    localStorage.setItem('theme', newMode ? 'dark' : 'light');
+    
+    // DOM类名的更新会通过useEffect处理
   };
 
   // Function to update window height
@@ -315,7 +329,7 @@ export default function Home() {
 
   // Render JSON with highlighting for differences
   const renderHighlightedJSON = (jsonStr: string, isLeft: boolean) => {
-    if (!jsonStr) return <div className="text-gray-400">Paste your JSON here...</div>;
+    if (!jsonStr) return <div style={{ color: isDarkMode ? '#A0AEC0' : '#718096' }}>Paste your JSON here...</div>;
     
     try {
       const jsonObj = JSON.parse(jsonStr);
@@ -337,17 +351,32 @@ export default function Home() {
             
             const diffType = matchingPath ? relevantMap[matchingPath].type : null;
             
-            let bgClass = "";
+            // Define styles based on diff type and dark mode
+            let style: React.CSSProperties = {};
+            let className = "py-1 px-2 ";
+            
             if (diffType === "added") {
-              bgClass = "bg-green-300 dark:bg-green-800 border-l-4 border-green-500";
+              style = {
+                backgroundColor: isDarkMode ? '#2F855A' : '#C6F6D5',
+                color: isDarkMode ? '#FFFFFF' : '#22543D',
+                borderLeft: '4px solid #48BB78'
+              };
             } else if (diffType === "removed") {
-              bgClass = "bg-red-300 dark:bg-red-800 border-l-4 border-red-500";
+              style = {
+                backgroundColor: isDarkMode ? '#9B2C2C' : '#FED7D7',
+                color: isDarkMode ? '#FFFFFF' : '#9B2C2C',
+                borderLeft: '4px solid #F56565'
+              };
             } else if (diffType === "changed") {
-              bgClass = "bg-yellow-300 dark:bg-yellow-800 border-l-4 border-yellow-500";
+              style = {
+                backgroundColor: isDarkMode ? '#744210' : '#FEFCBF',
+                color: isDarkMode ? '#FFFFFF' : '#744210',
+                borderLeft: '4px solid #ECC94B'
+              };
             }
             
             return (
-              <div key={i} className={`py-1 px-2 ${bgClass}`}>
+              <div key={i} className={className} style={style}>
                 {line}
               </div>
             );
@@ -355,27 +384,70 @@ export default function Home() {
         </div>
       );
     } catch (err) {
-      return <div className="font-mono text-sm whitespace-pre">{jsonStr}</div>;
+      return <div className="font-mono text-sm whitespace-pre" style={{ color: isDarkMode ? '#E2E8F0' : '#1A202C' }}>{jsonStr}</div>;
+    }
+  };
+
+  // Define styles based on dark mode
+  const styles = {
+    container: {
+      backgroundColor: isDarkMode ? '#1A202C' : '#F7FAFC',
+      color: isDarkMode ? '#E2E8F0' : '#1A202C',
+      minHeight: '100vh',
+      transition: 'background-color 0.2s, color 0.2s',
+    },
+    header: {
+      color: isDarkMode ? '#FFFFFF' : '#1A202C',
+    },
+    label: {
+      color: isDarkMode ? '#CBD5E0' : '#4A5568',
+    },
+    editor: {
+      backgroundColor: isDarkMode ? '#2D3748' : '#FFFFFF',
+      color: isDarkMode ? '#E2E8F0' : '#1A202C',
+      border: `1px solid ${isDarkMode ? '#4A5568' : '#E2E8F0'}`,
+    },
+    buttonPrimary: {
+      backgroundColor: '#3182CE',
+      color: '#FFFFFF',
+    },
+    buttonSecondary: {
+      backgroundColor: isDarkMode ? '#4A5568' : '#E2E8F0',
+      color: isDarkMode ? '#E2E8F0' : '#4A5568',
+    },
+    buttonSuccess: {
+      backgroundColor: '#38A169',
+      color: '#FFFFFF',
+    },
+    buttonDanger: {
+      backgroundColor: '#E53E3E',
+      color: '#FFFFFF',
+    },
+    error: {
+      backgroundColor: isDarkMode ? 'rgba(229, 62, 62, 0.2)' : '#FED7D7',
+      color: isDarkMode ? '#FC8181' : '#9B2C2C',
+      borderLeft: '4px solid #E53E3E',
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+    <div style={styles.container}>
       <div className="container mx-auto p-4 h-screen flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-center text-gray-900 dark:text-white">JSON Diff Tool</h1>
+          <h1 className="text-3xl font-bold text-center" style={styles.header}>JSON Diff Tool</h1>
           <button
             onClick={toggleDarkMode}
-            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            className="p-2 rounded-full hover:opacity-80"
+            style={{ backgroundColor: isDarkMode ? '#4A5568' : '#E2E8F0' }}
+            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
           >
-            {darkMode ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            {isDarkMode ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="#FEFCDE" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="#4A5568" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             )}
           </button>
@@ -383,22 +455,22 @@ export default function Home() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 flex-grow">
           <div className="flex flex-col">
-            <label htmlFor="leftJSON" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+            <label htmlFor="leftJSON" className="block text-sm font-medium mb-2" style={styles.label}>
               Left JSON
             </label>
             {showDiff ? (
               <div 
                 ref={leftEditorRef}
-                className="w-full flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 overflow-auto text-gray-900 dark:text-gray-100" 
-                style={{ height: `${getTextareaHeight()}px` }}
+                className="w-full flex-grow p-3 rounded overflow-auto" 
+                style={{...styles.editor, height: `${getTextareaHeight()}px` }}
               >
                 {renderHighlightedJSON(leftJSON, true)}
               </div>
             ) : (
               <textarea
                 id="leftJSON"
-                className="w-full flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded font-mono text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                style={{ height: `${getTextareaHeight()}px` }}
+                className="w-full flex-grow p-3 rounded font-mono text-sm"
+                style={{...styles.editor, height: `${getTextareaHeight()}px` }}
                 placeholder="Paste your JSON here..."
                 value={leftJSON}
                 onChange={(e) => setLeftJSON(e.target.value)}
@@ -406,22 +478,22 @@ export default function Home() {
             )}
           </div>
           <div className="flex flex-col">
-            <label htmlFor="rightJSON" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+            <label htmlFor="rightJSON" className="block text-sm font-medium mb-2" style={styles.label}>
               Right JSON
             </label>
             {showDiff ? (
               <div 
                 ref={rightEditorRef}
-                className="w-full flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 overflow-auto text-gray-900 dark:text-gray-100" 
-                style={{ height: `${getTextareaHeight()}px` }}
+                className="w-full flex-grow p-3 rounded overflow-auto" 
+                style={{...styles.editor, height: `${getTextareaHeight()}px` }}
               >
                 {renderHighlightedJSON(rightJSON, false)}
               </div>
             ) : (
               <textarea
                 id="rightJSON"
-                className="w-full flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded font-mono text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                style={{ height: `${getTextareaHeight()}px` }}
+                className="w-full flex-grow p-3 rounded font-mono text-sm"
+                style={{...styles.editor, height: `${getTextareaHeight()}px` }}
                 placeholder="Paste your JSON here..."
                 value={rightJSON}
                 onChange={(e) => setRightJSON(e.target.value)}
@@ -433,33 +505,43 @@ export default function Home() {
         <div className="flex justify-center gap-4 mb-4 flex-wrap">
           <button
             onClick={compareJSON}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+            className="px-6 py-2 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+            style={styles.buttonPrimary}
           >
             Compare JSON
           </button>
           <button
             onClick={() => setShowDiff(false)}
-            className={`px-6 py-2 ${showDiff ? 'bg-yellow-600 text-white' : 'bg-gray-300 text-gray-700 dark:bg-gray-700 dark:text-gray-300'} rounded hover:bg-yellow-700 dark:hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition-colors`}
+            className="px-6 py-2 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+            style={{ 
+              ...styles.buttonSecondary,
+              backgroundColor: showDiff ? '#D69E2E' : isDarkMode ? '#4A5568' : '#E2E8F0',
+              color: showDiff ? 'white' : (isDarkMode ? '#E2E8F0' : '#4A5568'),
+              opacity: showDiff ? 1 : 0.5,
+              cursor: showDiff ? 'pointer' : 'not-allowed'
+            }}
             disabled={!showDiff}
           >
             Edit Mode
           </button>
           <button
             onClick={clearAll}
-            className="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors"
+            className="px-6 py-2 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+            style={styles.buttonDanger}
           >
             Clear All
           </button>
           <button
             onClick={resetToDemo}
-            className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors"
+            className="px-6 py-2 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+            style={styles.buttonSuccess}
           >
             Load Demo Data
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400">
+          <div className="mb-4 p-4" style={styles.error}>
             {error}
           </div>
         )}

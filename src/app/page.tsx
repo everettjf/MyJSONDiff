@@ -2,6 +2,43 @@
 
 import { useState, useEffect, useRef } from "react";
 
+// 声明Tauri全局变量
+declare global {
+  interface Window {
+    __TAURI__?: any;
+  }
+}
+
+// 全局错误处理
+if (typeof window !== 'undefined') {
+  console.log("初始化全局错误处理");
+  
+  // 捕获未处理的Promise错误
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('未处理的Promise错误:', event.reason);
+    
+    // 尝试更新splash screen
+    try {
+      const splashScreen = document.getElementById('splash-screen');
+      if (splashScreen && splashScreen.style.display !== 'none') {
+        const loadingText = splashScreen.querySelector('p');
+        if (loadingText) {
+          loadingText.textContent = '加载失败: ' + (event.reason?.message || event.reason || '未知错误');
+          loadingText.style.color = 'red';
+        }
+
+        const errorDiv = document.getElementById('splash-error');
+        if (errorDiv) {
+          errorDiv.textContent = '详细错误: ' + JSON.stringify(event.reason);
+          errorDiv.style.display = 'block';
+        }
+      }
+    } catch (err) {
+      console.error('显示错误信息时发生异常:', err);
+    }
+  });
+}
+
 // Define demo JSON examples
 const demoLeftJSON = JSON.stringify({
   name: "Product A",
@@ -47,32 +84,102 @@ export default function Home() {
   const [windowHeight, setWindowHeight] = useState(0);
   const [showDiff, setShowDiff] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [appError, setAppError] = useState<string | null>(null);
   const leftEditorRef = useRef<HTMLDivElement>(null);
   const rightEditorRef = useRef<HTMLDivElement>(null);
 
   // Initialize with demo data and update window height on mount and resize
   useEffect(() => {
-    // Set initial window height
-    updateWindowHeight();
+    try {
+      console.log("Application initialization starting...");
+      
+      // Check if running in Tauri environment
+      const isTauri = !!window.__TAURI__;
+      console.log("Running in Tauri environment:", isTauri);
+      
+      // Log environment information
+      console.log("Environment details:", {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        vendor: navigator.vendor,
+        screenSize: `${window.screen.width}x${window.screen.height}`,
+        windowSize: `${window.innerWidth}x${window.innerHeight}`,
+        isDarkMode,
+        documentReadyState: document.readyState
+      });
+      
+      // Set initial window height
+      updateWindowHeight();
 
-    // 确保深色模式状态同步到DOM
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+      // Ensure dark mode is synced with DOM
+      if (isDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+
+      // Initialize demo data with explicit error handling
+      try {
+        console.log("Setting demo data");
+        setLeftJSON(demoLeftJSON);
+        setRightJSON(demoRightJSON);
+      } catch (demoErr) {
+        console.error("Failed to set demo data:", demoErr);
+        throw demoErr;
+      }
+      
+      console.log("Initialization complete, now hiding splash screen");
+      
+      // Add a small delay before hiding splash screen to ensure all components are ready
+      setTimeout(() => {
+        // Hide loading screen
+        const splashScreen = document.getElementById('splash-screen');
+        if (splashScreen) {
+          splashScreen.style.display = 'none';
+          console.log("Splash screen hidden");
+        } else {
+          console.warn("Splash screen element not found");
+        }
+      }, 500);
+
+      // Add resize event listener
+      window.addEventListener('resize', updateWindowHeight);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error("Application initialization error:", errorMessage, err);
+      
+      // Display error and ensure splash screen continues to show loading information
+      setAppError(errorMessage);
+      const splashScreen = document.getElementById('splash-screen');
+      if (splashScreen) {
+        splashScreen.style.display = 'flex'; // Ensure it's visible
+        const loadingText = splashScreen.querySelector('p');
+        if (loadingText) {
+          loadingText.textContent = `Error: ${errorMessage}`;
+          loadingText.style.color = 'red';
+        }
+        
+        // Also update the error details element
+        const errorDetails = document.getElementById('splash-error');
+        if (errorDetails) {
+          errorDetails.textContent = JSON.stringify({
+            error: errorMessage,
+            stack: err instanceof Error ? err.stack : 'No stack available',
+            timestamp: new Date().toISOString()
+          }, null, 2);
+          errorDetails.style.display = 'block';
+        }
+      }
     }
-
-    // 隐藏加载屏幕
-    const splashScreen = document.getElementById('splash-screen');
-    if (splashScreen) {
-      splashScreen.style.display = 'none';
-    }
-
-    // Add resize event listener
-    window.addEventListener('resize', updateWindowHeight);
 
     // Clean up event listener
-    return () => window.removeEventListener('resize', updateWindowHeight);
+    return () => {
+      try {
+        window.removeEventListener('resize', updateWindowHeight);
+      } catch (err) {
+        console.error("清理事件监听错误:", err);
+      }
+    };
   }, [isDarkMode]);
 
   // Toggle between light and dark mode
@@ -118,6 +225,33 @@ export default function Home() {
     setDiffResult(null);
     setError(null);
     setShowDiff(false);
+  };
+
+  // Debug information
+  const showDebugInfo = () => {
+    try {
+      const debugInfo = {
+        environmentInfo: {
+          isTauri: !!window.__TAURI__,
+          userAgent: navigator.userAgent,
+          platform: navigator.platform,
+          screenSize: `${window.screen.width}x${window.screen.height}`,
+          windowSize: `${window.innerWidth}x${window.innerHeight}`,
+          isDarkMode,
+        },
+        appState: {
+          hasError: !!error || !!appError,
+          errorMessage: error || appError,
+          showDiff,
+          leftJSONLength: leftJSON?.length || 0,
+          rightJSONLength: rightJSON?.length || 0,
+        }
+      };
+      
+      setAppError(`Debug Information: ${JSON.stringify(debugInfo, null, 2)}`);
+    } catch (err) {
+      setAppError(`Error generating debug info: ${err instanceof Error ? err.message : String(err)}`);
+    }
   };
 
   // Function to reset to demo data
@@ -595,6 +729,16 @@ export default function Home() {
 
   return (
     <div style={styles.container}>
+      {appError && (
+        <div className="p-4 m-4 rounded" style={{
+          backgroundColor: isDarkMode ? 'rgba(229, 62, 62, 0.2)' : '#FED7D7',
+          color: isDarkMode ? '#FC8181' : '#9B2C2C',
+          border: '1px solid #E53E3E',
+        }}>
+          <h2 className="text-lg font-bold mb-2">应用错误</h2>
+          <p>{appError}</p>
+        </div>
+      )}
       <div className="container mx-auto p-2 h-screen flex flex-col max-w-full">
         
 
@@ -704,6 +848,16 @@ export default function Home() {
               style={styles.buttonSuccess}
             >
               Demo
+            </button>
+            <button
+              onClick={showDebugInfo}
+              className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+              style={{
+                backgroundColor: '#6B46C1',
+                color: '#FFFFFF',
+              }}
+            >
+              Debug
             </button>
             <button
               onClick={toggleDarkMode}

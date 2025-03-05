@@ -30,6 +30,28 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100`}
       >
+        <div id="splash-screen" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: '#f9fafb',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <h1 style={{ 
+            fontSize: '24px', 
+            fontWeight: 'bold',
+            marginBottom: '16px'
+          }}>
+            MyJSONDiff
+          </h1>
+          <p>Loading application...</p>
+        </div>
         {children}
       </body>
     </html>

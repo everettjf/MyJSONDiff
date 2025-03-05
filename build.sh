@@ -19,11 +19,10 @@ echo "Building frontend..."
 npm run build
 
 # Build the app with specific settings for TestFlight
-echo "Building Tauri app for iOS/TestFlight..."
-npm run tauri build -- --target universal-apple-darwin --bundles ios
+echo "Building Tauri app for macOS..."
+npm run tauri build -- --target universal-apple-darwin --bundles app
 
-echo "Build completed. The app package is ready for TestFlight distribution."
-echo "Please upload the .ipa file from src-tauri/target/universal-apple-darwin/release/bundle/ios directory to App Store Connect."
+echo "Build completed. The app package is ready for macOS distribution."
 
 # For macOS package (optional)
 echo "Creating macOS installer package..."

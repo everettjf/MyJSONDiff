@@ -62,6 +62,12 @@ export default function Home() {
       document.documentElement.classList.remove('dark');
     }
 
+    // 隐藏加载屏幕
+    const splashScreen = document.getElementById('splash-screen');
+    if (splashScreen) {
+      splashScreen.style.display = 'none';
+    }
+
     // Add resize event listener
     window.addEventListener('resize', updateWindowHeight);
 

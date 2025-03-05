@@ -20,7 +20,7 @@ npm run build
 
 # Build the app with specific settings for TestFlight
 echo "Building Tauri app for macOS..."
-npm run tauri build -- --target universal-apple-darwin --bundles app
+npm run tauri build -- --bundles app --target universal-apple-darwin
 
 echo "Build completed. The app package is ready for macOS distribution."
 

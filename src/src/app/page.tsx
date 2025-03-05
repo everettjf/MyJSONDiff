@@ -66,10 +66,6 @@ export default function Home() {
 
   // Initialize with demo data and update window height on mount and resize
   useEffect(() => {
-    // Set demo data
-    setLeftJSON(demoLeftJSON);
-    setRightJSON(demoRightJSON);
-
     // Set initial window height
     updateWindowHeight();
 
@@ -477,58 +473,63 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex justify-center gap-3 mb-3 flex-wrap">
-          <button
-            onClick={compareJSON}
-            className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
-            style={styles.buttonPrimary}
-          >
-            Compare JSON
-          </button>
-          <button
-            onClick={() => setShowDiff(false)}
-            className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
-            style={{
-              ...styles.buttonSecondary,
-              backgroundColor: showDiff ? '#D69E2E' : isDarkMode ? '#4A5568' : '#E2E8F0',
-              color: showDiff ? 'white' : (isDarkMode ? '#E2E8F0' : '#4A5568'),
-              opacity: showDiff ? 1 : 0.5,
-              cursor: showDiff ? 'pointer' : 'not-allowed'
-            }}
-            disabled={!showDiff}
-          >
-            Edit Mode
-          </button>
-          <button
-            onClick={clearAll}
-            className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
-            style={styles.buttonDanger}
-          >
-            Clear All
-          </button>
-          <button
-            onClick={resetToDemo}
-            className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
-            style={styles.buttonSuccess}
-          >
-            Load Demo Data
-          </button>
-          <button
-            onClick={toggleDarkMode}
-            className="p-2 rounded-full hover:opacity-80"
-            style={{ backgroundColor: isDarkMode ? '#4A5568' : '#E2E8F0' }}
-            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {isDarkMode ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="#FEFCDE" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="#4A5568" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </button>
+        <div className="flex justify-between items-center mb-3">
+          <div className="w-10"></div>
+          <div className="flex gap-3 flex-wrap justify-center">
+            <button
+              onClick={compareJSON}
+              className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+              style={styles.buttonPrimary}
+            >
+              Compare JSON
+            </button>
+            <button
+              onClick={() => setShowDiff(false)}
+              className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+              style={{
+                ...styles.buttonSecondary,
+                backgroundColor: showDiff ? '#D69E2E' : isDarkMode ? '#4A5568' : '#E2E8F0',
+                color: showDiff ? 'white' : (isDarkMode ? '#E2E8F0' : '#4A5568'),
+                opacity: showDiff ? 1 : 0.5,
+                cursor: showDiff ? 'pointer' : 'not-allowed'
+              }}
+              disabled={!showDiff}
+            >
+              Edit Mode
+            </button>
+            <button
+              onClick={clearAll}
+              className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+              style={styles.buttonDanger}
+            >
+              Clear All
+            </button>
+          </div>
+          <div className="flex gap-3 items-center">
+            <button
+              onClick={resetToDemo}
+              className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+              style={styles.buttonSuccess}
+            >
+              Demo
+            </button>
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-full hover:opacity-80"
+              style={{ backgroundColor: isDarkMode ? '#4A5568' : '#E2E8F0' }}
+              aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDarkMode ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="#FEFCDE" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="#4A5568" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
 
         {error && (

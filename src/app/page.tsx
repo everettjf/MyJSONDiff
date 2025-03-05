@@ -612,7 +612,16 @@ export default function Home() {
                 style={{ ...styles.editor, height: `${getTextareaHeight()}px` }}
                 placeholder="Paste your JSON here..."
                 value={leftJSON}
-                onChange={(e) => setLeftJSON(e.target.value)}
+                onChange={(e) => {
+                  // Replace smart quotes with straight quotes
+                  const normalizedText = e.target.value
+                    .replace(/[\u201C\u201D]/g, '"') // Replace double smart quotes
+                    .replace(/[\u2018\u2019]/g, "'"); // Replace single smart quotes
+                  setLeftJSON(normalizedText);
+                }}
+                spellCheck={false}
+                autoCorrect="off"
+                autoCapitalize="off"
               />
             )}
           </div>
@@ -635,7 +644,16 @@ export default function Home() {
                 style={{ ...styles.editor, height: `${getTextareaHeight()}px` }}
                 placeholder="Paste your JSON here..."
                 value={rightJSON}
-                onChange={(e) => setRightJSON(e.target.value)}
+                onChange={(e) => {
+                  // Replace smart quotes with straight quotes
+                  const normalizedText = e.target.value
+                    .replace(/[\u201C\u201D]/g, '"') // Replace double smart quotes
+                    .replace(/[\u2018\u2019]/g, "'"); // Replace single smart quotes
+                  setRightJSON(normalizedText);
+                }}
+                spellCheck={false}
+                autoCorrect="off"
+                autoCapitalize="off"
               />
             )}
           </div>

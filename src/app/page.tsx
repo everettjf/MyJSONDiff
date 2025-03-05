@@ -417,7 +417,7 @@ export default function Home() {
 
   // Render JSON with highlighting for differences
   const renderHighlightedJSON = (jsonStr: string, isLeft: boolean) => {
-    if (!jsonStr) return <div style={{ color: isDarkMode ? '#A0AEC0' : '#718096' }}>Paste your JSON here...</div>;
+    if (!jsonStr) return <div style={{ color: '#718096' }}>Paste your JSON here...</div>;
 
     try {
       const jsonObj = JSON.parse(jsonStr);

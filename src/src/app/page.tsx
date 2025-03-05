@@ -39,28 +39,14 @@ const demoRightJSON = JSON.stringify({
 }, null, 2);
 
 export default function Home() {
-  // 从localStorage获取初始主题状态
-  const getInitialTheme = () => {
-    // 注意：此函数在服务器端渲染时不能访问localStorage
-    const savedTheme = localStorage.getItem('theme');
-    console.log(`savedTheme: ${savedTheme}`);
-
-    // 如果localStorage中有值，使用它
-    if (savedTheme == 'dark') return true;
-    if (savedTheme == 'light') return false;
-
-    // 如果没有明确设置且系统无偏好，默认使用深色模式
-    return true;
-  };
-
+  
   const [leftJSON, setLeftJSON] = useState("");
   const [rightJSON, setRightJSON] = useState("");
   const [diffResult, setDiffResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [windowHeight, setWindowHeight] = useState(0);
   const [showDiff, setShowDiff] = useState(false);
-  // const [isDarkMode, setIsDarkMode] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(getInitialTheme());
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const leftEditorRef = useRef<HTMLDivElement>(null);
   const rightEditorRef = useRef<HTMLDivElement>(null);
 
@@ -87,11 +73,6 @@ export default function Home() {
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
-
-    // 只有当用户明确切换主题时，才存储到localStorage
-    localStorage.setItem('theme', newMode ? 'dark' : 'light');
-
-    // DOM类名的更新会通过useEffect处理
   };
 
   // Function to update window height

@@ -44,10 +44,11 @@ export default function Home() {
     // 注意：此函数在服务器端渲染时不能访问localStorage
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme');
+      console.log(`savedTheme: ${savedTheme}`);
       
       // 如果localStorage中有值，使用它
-      if (savedTheme === 'dark') return true;
-      if (savedTheme === 'light') return false;
+      if (savedTheme == 'dark') return true;
+      if (savedTheme == 'light') return false;
       
       // 如果没有存储的值，检查系统偏好
       if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -67,7 +68,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [windowHeight, setWindowHeight] = useState(0);
   const [showDiff, setShowDiff] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(getInitialTheme());
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  // const [isDarkMode, setIsDarkMode] = useState(getInitialTheme());
   const leftEditorRef = useRef<HTMLDivElement>(null);
   const rightEditorRef = useRef<HTMLDivElement>(null);
   

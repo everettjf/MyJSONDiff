@@ -3,6 +3,10 @@
 APPNAME="MyJSONDiff"
 # rustup target add x86_64-apple-darwin 
 
+cd src
+npm install
+cd ..
+npm install
 
 npm run tauri build -- --bundles app --target universal-apple-darwin
 

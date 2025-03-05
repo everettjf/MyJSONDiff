@@ -1,2 +1,6 @@
-npm run tauri build -- --no-bundle
-npm run tauri bundle -- --bundles app --target universal-apple-darwin
+
+
+# rustup target add x86_64-apple-darwin 
+
+
+npm run tauri build -- --bundles app --target universal-apple-darwin

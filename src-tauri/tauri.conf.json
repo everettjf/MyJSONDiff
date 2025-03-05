@@ -34,7 +34,7 @@
     "macOS": {
       "signingIdentity": "iPhone Distribution: Feng Zhu (SU4WK7V467)",
       "files": {
-        "embedded.provisionprofile": "./app.provisionprofile"
+        "embedded.provisionprofile": "./app.mobileprovision"
       },
       "entitlements": "./Entitlements.plist",
       "minimumSystemVersion": "15.0"

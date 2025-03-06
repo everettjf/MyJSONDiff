@@ -119,14 +119,14 @@ export default function Home() {
       }
 
       // Initialize demo data with explicit error handling
-      try {
-        console.log("Setting demo data");
-        setLeftJSON(demoLeftJSON);
-        setRightJSON(demoRightJSON);
-      } catch (demoErr) {
-        console.error("Failed to set demo data:", demoErr);
-        throw demoErr;
-      }
+      // try {
+      //   console.log("Setting demo data");
+      //   setLeftJSON(demoLeftJSON);
+      //   setRightJSON(demoRightJSON);
+      // } catch (demoErr) {
+      //   console.error("Failed to set demo data:", demoErr);
+      //   throw demoErr;
+      // }
       
       console.log("Initialization complete, now hiding splash screen");
       
@@ -849,7 +849,7 @@ export default function Home() {
             >
               Demo
             </button>
-            <button
+            {/* <button
               onClick={showDebugInfo}
               className="px-4 py-1.5 rounded hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
               style={{
@@ -858,7 +858,7 @@ export default function Home() {
               }}
             >
               Debug
-            </button>
+            </button> */}
             <button
               onClick={toggleDarkMode}
               className="p-2 rounded-full hover:opacity-80"

@@ -36,21 +36,12 @@ export default function RootLayout({
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundColor: '#f9fafb',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 9999,
         }}>
-          <h1 style={{ 
-            fontSize: '24px', 
-            fontWeight: 'bold',
-            marginBottom: '16px'
-          }}>
-            MyJSONDiff
-          </h1>
-          <p>Loading application...</p>
           <div id="splash-error" style={{ 
             color: 'red', 
             margin: '20px', 

@@ -25,3 +25,45 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Diff viewer styles */
+.diff-viewer {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.diff-line {
+  padding: 2px 8px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  border-radius: 2px;
+  margin: 1px 0;
+}
+
+.diff-added {
+  background-color: #aaffaa;
+}
+
+.dark .diff-added {
+  background-color: #2f855a;
+  color: #ffffff;
+}
+
+.diff-removed {
+  background-color: #ffaaaa;
+}
+
+.dark .diff-removed {
+  background-color: #9b2c2c;
+  color: #ffffff;
+}
+
+.diff-unchanged {
+  background-color: transparent;
+}
+
+.dark .diff-unchanged {
+  background-color: transparent;
+  color: #e2e8f0;
+}

@@ -27,7 +27,7 @@ echo "Build completed. The app package is ready for macOS distribution."
 # For macOS package (optional)
 echo "Creating macOS installer package..."
 rm -f "$APPNAME.pkg"
-xcrun productbuild --sign "3rd Party Mac Developer Installer: Feng Zhu (SU4WK7V467)" \
+xcrun productbuild --sign "3rd Party Mac Developer Installer: Feng Zhu (YPV49M8592)" \
   --component "src-tauri/target/universal-apple-darwin/release/bundle/macos/$APPNAME.app" \
   /Applications "$APPNAME.pkg"
 

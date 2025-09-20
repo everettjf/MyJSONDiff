@@ -282,56 +282,136 @@ export default function Home() {
   };
 
 
-  // Render diff using diff package output
+  // Render diff using side-by-side comparison
   const renderDiffHTML = (diffResult: any[]) => {
+    // Split diff result into left and right sides
+    const leftLines: string[] = [];
+    const rightLines: string[] = [];
+    const leftStyles: React.CSSProperties[] = [];
+    const rightStyles: React.CSSProperties[] = [];
+    
+    diffResult.forEach((part) => {
+      const lines = part.value.split('\n');
+      lines.forEach((line: string, lineIndex: number) => {
+        if (lineIndex === lines.length - 1 && line === '') return; // Skip empty last line
+        
+        if (part.removed) {
+          // Show in left side (removed)
+          leftLines.push(line);
+          leftStyles.push({
+            backgroundColor: isDarkMode ? '#9B2C2C' : '#FED7D7',
+            color: isDarkMode ? '#FFFFFF' : '#9B2C2C',
+            borderLeft: '4px solid #F56565'
+          });
+          rightLines.push(''); // Empty line on right
+          rightStyles.push({});
+        } else if (part.added) {
+          // Show in right side (added)
+          leftLines.push(''); // Empty line on left
+          leftStyles.push({});
+          rightLines.push(line);
+          rightStyles.push({
+            backgroundColor: isDarkMode ? '#2F855A' : '#C6F6D5',
+            color: isDarkMode ? '#FFFFFF' : '#22543D',
+            borderLeft: '4px solid #48BB78'
+          });
+        } else {
+          // Show in both sides (unchanged)
+          leftLines.push(line);
+          leftStyles.push({
+            backgroundColor: 'transparent',
+            color: isDarkMode ? '#E2E8F0' : '#1A202C'
+          });
+          rightLines.push(line);
+          rightStyles.push({
+            backgroundColor: 'transparent',
+            color: isDarkMode ? '#E2E8F0' : '#1A202C'
+          });
+        }
+      });
+    });
+
     return (
       <div 
-        className="diff-viewer"
+        className="diff-viewer-side-by-side"
         style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '0',
           fontFamily: 'monospace',
           fontSize: '14px',
           lineHeight: '1.4',
           backgroundColor: isDarkMode ? '#2D3748' : '#FFFFFF',
           color: isDarkMode ? '#E2E8F0' : '#1A202C',
-          padding: '16px',
           borderRadius: '8px',
           border: `1px solid ${isDarkMode ? '#4A5568' : '#E2E8F0'}`,
           overflow: 'auto',
           maxHeight: `${getTextareaHeight()}px`
         }}
       >
-        {diffResult.map((part, index) => {
-          let style: React.CSSProperties = {};
-          let className = "diff-line";
-          
-          if (part.added) {
-            style = {
-              backgroundColor: isDarkMode ? '#2F855A' : '#C6F6D5',
-              color: isDarkMode ? '#FFFFFF' : '#22543D',
-              borderLeft: '4px solid #48BB78'
-            };
-            className += " diff-added";
-          } else if (part.removed) {
-            style = {
-              backgroundColor: isDarkMode ? '#9B2C2C' : '#FED7D7',
-              color: isDarkMode ? '#FFFFFF' : '#9B2C2C',
-              borderLeft: '4px solid #F56565'
-            };
-            className += " diff-removed";
-          } else {
-            style = {
-              backgroundColor: 'transparent',
-              color: isDarkMode ? '#E2E8F0' : '#1A202C'
-            };
-            className += " diff-unchanged";
-          }
-          
-          return (
-            <div key={index} className={className} style={style}>
-              {part.value}
-            </div>
-          );
-        })}
+        {/* Left side (Original) */}
+        <div className="diff-left">
+          <div 
+            className="diff-header"
+            style={{
+              backgroundColor: isDarkMode ? '#4A5568' : '#E2E8F0',
+              color: isDarkMode ? '#E2E8F0' : '#4A5568',
+              padding: '8px 12px',
+              fontWeight: 'bold',
+              borderBottom: `1px solid ${isDarkMode ? '#4A5568' : '#E2E8F0'}`
+            }}
+          >
+            Original (Sorted)
+          </div>
+          <div className="diff-content">
+            {leftLines.map((line, index) => (
+              <div 
+                key={index} 
+                className="diff-line"
+                style={{
+                  padding: '2px 12px',
+                  whiteSpace: 'pre-wrap',
+                  wordWrap: 'break-word',
+                  ...leftStyles[index]
+                }}
+              >
+                {line}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right side (Modified) */}
+        <div className="diff-right">
+          <div 
+            className="diff-header"
+            style={{
+              backgroundColor: isDarkMode ? '#4A5568' : '#E2E8F0',
+              color: isDarkMode ? '#E2E8F0' : '#4A5568',
+              padding: '8px 12px',
+              fontWeight: 'bold',
+              borderBottom: `1px solid ${isDarkMode ? '#4A5568' : '#E2E8F0'}`
+            }}
+          >
+            Modified (Sorted)
+          </div>
+          <div className="diff-content">
+            {rightLines.map((line, index) => (
+              <div 
+                key={index} 
+                className="diff-line"
+                style={{
+                  padding: '2px 12px',
+                  whiteSpace: 'pre-wrap',
+                  wordWrap: 'break-word',
+                  ...rightStyles[index]
+                }}
+              >
+                {line}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   };

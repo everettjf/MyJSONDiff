@@ -27,43 +27,73 @@ body {
 }
 
 /* Diff viewer styles */
-.diff-viewer {
+.diff-viewer-side-by-side {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 14px;
   line-height: 1.4;
 }
 
+.diff-viewer-side-by-side .diff-left,
+.diff-viewer-side-by-side .diff-right {
+  border-right: 1px solid #e2e8f0;
+}
+
+.dark .diff-viewer-side-by-side .diff-left,
+.dark .diff-viewer-side-by-side .diff-right {
+  border-right: 1px solid #4a5568;
+}
+
+.diff-viewer-side-by-side .diff-right {
+  border-right: none;
+}
+
 .diff-line {
-  padding: 2px 8px;
   white-space: pre-wrap;
   word-wrap: break-word;
   border-radius: 2px;
   margin: 1px 0;
 }
 
-.diff-added {
-  background-color: #aaffaa;
+.diff-header {
+  font-weight: bold;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.dark .diff-added {
-  background-color: #2f855a;
-  color: #ffffff;
+.dark .diff-header {
+  border-bottom: 1px solid #4a5568;
 }
 
-.diff-removed {
-  background-color: #ffaaaa;
+.diff-content {
+  max-height: 400px;
+  overflow-y: auto;
 }
 
-.dark .diff-removed {
-  background-color: #9b2c2c;
-  color: #ffffff;
+/* Scrollbar styling for diff content */
+.diff-content::-webkit-scrollbar {
+  width: 6px;
 }
 
-.diff-unchanged {
-  background-color: transparent;
+.diff-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
 }
 
-.dark .diff-unchanged {
-  background-color: transparent;
-  color: #e2e8f0;
+.dark .diff-content::-webkit-scrollbar-track {
+  background: #2d3748;
+}
+
+.diff-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.dark .diff-content::-webkit-scrollbar-thumb {
+  background: #4a5568;
+}
+
+.diff-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.dark .diff-content::-webkit-scrollbar-thumb:hover {
+  background: #718096;
 }

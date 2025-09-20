@@ -36,6 +36,9 @@ body {
 .diff-viewer-side-by-side .diff-left,
 .diff-viewer-side-by-side .diff-right {
   border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .dark .diff-viewer-side-by-side .diff-left,
@@ -64,8 +67,9 @@ body {
 }
 
 .diff-content {
-  max-height: 400px;
+  flex: 1;
   overflow-y: auto;
+  min-height: 0; /* Important for flex child to shrink */
 }
 
 /* Scrollbar styling for diff content */
@@ -96,4 +100,27 @@ body {
 
 .dark .diff-content::-webkit-scrollbar-thumb:hover {
   background: #718096;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .diff-viewer-side-by-side {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+  
+  .diff-viewer-side-by-side .diff-left,
+  .diff-viewer-side-by-side .diff-right {
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .dark .diff-viewer-side-by-side .diff-left,
+  .dark .diff-viewer-side-by-side .diff-right {
+    border-bottom: 1px solid #4a5568;
+  }
+  
+  .diff-viewer-side-by-side .diff-right {
+    border-bottom: none;
+  }
 }

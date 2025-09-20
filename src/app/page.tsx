@@ -198,8 +198,15 @@ export default function Home() {
   // Calculate textarea height based on window size (subtract space for other elements)
   const getTextareaHeight = () => {
     // Reserve space for header, buttons, margins, etc.
-    const reservedSpace = 220;
-    return Math.max(300, windowHeight - reservedSpace);
+    const reservedSpace = 120;
+    return Math.max(400, windowHeight - reservedSpace);
+  };
+
+  // Calculate diff viewer height for full screen usage
+  const getDiffViewerHeight = () => {
+    // Reserve space for title, buttons, and margins
+    const reservedSpace = 80;
+    return Math.max(400, windowHeight - reservedSpace);
   };
 
   const compareJSON = () => {
@@ -345,8 +352,9 @@ export default function Home() {
           color: isDarkMode ? '#E2E8F0' : '#1A202C',
           borderRadius: '8px',
           border: `1px solid ${isDarkMode ? '#4A5568' : '#E2E8F0'}`,
-          overflow: 'auto',
-          maxHeight: `${getTextareaHeight()}px`
+          overflow: 'hidden',
+          height: '100%',
+          minHeight: '400px'
         }}
       >
         {/* Left side (Original) */}
@@ -482,12 +490,12 @@ export default function Home() {
           <p>{appError}</p>
         </div>
       )}
-      <div className="container mx-auto p-2 h-screen flex flex-col max-w-full">
+      <div className="container mx-auto p-2 h-screen flex flex-col max-w-full overflow-hidden">
         
 
         {showDiff && diffResult ? (
-          <div className="mb-3 flex-grow">
-            <div className="mb-2">
+          <div className="flex-grow flex flex-col">
+            <div className="mb-2 flex-shrink-0">
               <h3 className="text-lg font-semibold" style={styles.header}>
                 JSON Diff (Sorted & Compared)
               </h3>
@@ -495,7 +503,9 @@ export default function Home() {
                 Both JSON objects have been sorted alphabetically before comparison
               </p>
             </div>
-            {renderDiffHTML(diffResult.diff)}
+            <div className="flex-grow">
+              {renderDiffHTML(diffResult.diff)}
+            </div>
           </div>
         ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3 flex-grow">

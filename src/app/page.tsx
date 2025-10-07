@@ -490,7 +490,7 @@ export default function Home() {
           <p>{appError}</p>
         </div>
       )}
-      <div className="container mx-auto p-2 h-screen flex flex-col max-w-full overflow-hidden">
+      <div className="container mx-auto p-2 min-h-screen flex flex-col max-w-full">
         
 
         {showDiff && diffResult ? (
@@ -503,7 +503,7 @@ export default function Home() {
                 Both JSON objects have been sorted alphabetically before comparison
               </p>
             </div>
-            <div className="flex-grow">
+            <div className="flex-grow overflow-y-auto">
               {renderDiffHTML(diffResult.diff)}
             </div>
           </div>

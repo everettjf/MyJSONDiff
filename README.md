@@ -41,10 +41,11 @@ App Store: https://apps.apple.com/us/app/myjsondiff/id6742816661
 
 ## Tech Stack
 
-- Next.js 14
-- React
-- TypeScript
-- Tailwind CSS
+- Tauri 2 (desktop shell)
+- Next.js 14.2 (frontend)
+- React 18
+- TypeScript (app + tooling)
+- Tailwind CSS (styling)
 - [jsonabc](https://www.npmjs.com/package/jsonabc) for key sorting
 - [diff](https://www.npmjs.com/package/diff) for diff generation
 

@@ -2,6 +2,10 @@
 
 MyJSONDiff is a clean, fast JSON diff tool that makes it easy to compare two JSON objects side by side. It uses the jsonsortdiff approach to normalize key order before diffing, so the results focus on real changes instead of formatting noise.
 
+## Screenshot
+
+![MyJSONDiff screenshot](screenshot.png)
+
 ## Website
 
 Official site: https://www.xnu.app/jsondiff

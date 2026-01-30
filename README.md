@@ -1,70 +1,64 @@
-# JSON Diff Tool
+# MyJSONDiff
 
-一个美观、易用的JSON差异比较工具，基于 [jsonsortdiff](https://github.com/ShivrajRath/jsonsortdiff) 方法，帮助你可视化比较两个JSON对象之间的差异。
+MyJSONDiff is a clean, fast JSON diff tool that makes it easy to compare two JSON objects side by side. It uses the jsonsortdiff approach to normalize key order before diffing, so the results focus on real changes instead of formatting noise.
 
-## 功能特点
+## Website
 
-- 直观的用户界面，左右并排显示JSON输入
-- **智能排序比较**: 使用 jsonabc 对JSON对象进行字母排序后再比较，确保比较结果不受键顺序影响
-- **专业差异显示**: 使用 jsdifflib 生成专业的差异视图，清晰显示添加、删除和修改的内容
-- 支持复杂的嵌套对象和数组比较
-- 彩色高亮显示差异，便于快速识别
-- 完全客户端运行，无需服务器处理
-- 支持深色模式
-- 响应式设计，适用于各种设备
+Official site: https://www.xnu.app/jsondiff
 
-## 如何使用
+## Download
 
-1. 在左侧文本框中粘贴第一个JSON对象
-2. 在右侧文本框中粘贴第二个JSON对象
-3. 点击"Compare JSON"按钮查看差异
-4. 系统会自动对两个JSON对象进行字母排序，然后生成专业的差异视图
-5. 差异结果将以左右分区形式显示，左侧显示原始内容，右侧显示修改后内容
-6. 红色高亮表示删除的内容，绿色高亮表示添加的内容
+App Store: https://apps.apple.com/us/app/myjsondiff/id6742816661
 
-## 差异类型说明
+## Features
 
-- **添加** (绿色): 在右侧JSON中存在但在左侧JSON中不存在的属性
-- **删除** (红色): 在左侧JSON中存在但在右侧JSON中不存在的属性  
-- **修改** (黄色): 在两侧JSON中都存在但值不同的属性
+- Side-by-side JSON editors with a clear, readable layout
+- Order-insensitive comparison via alphabetized key sorting (jsonabc)
+- Professional diff visualization with added/removed/changed highlights
+- Handles nested objects and arrays
+- Color-coded output for quick scanning
+- Fully client-side processing
+- Dark mode support
+- Responsive design for desktop and mobile
 
-## 技术优势
+## How It Works
 
-- **排序比较**: 通过先排序再比较的方式，确保即使JSON对象的键顺序不同，也能准确识别差异
-- **左右分区显示**: 直观的并排比较视图，左侧显示原始内容，右侧显示修改后内容
-- **专业显示**: 使用成熟的 diff 库生成标准化的差异视图
-- **性能优化**: 客户端处理，无需网络传输，响应速度快
-- **同步滚动**: 左右两侧内容同步滚动，便于对比查看
+1. Paste JSON A on the left
+2. Paste JSON B on the right
+3. Click "Compare JSON"
+4. The tool sorts both objects by key order
+5. A structured, side-by-side diff is generated
 
-## 技术栈
+### Diff Legend
+
+- **Added** (green): present on the right, missing on the left
+- **Removed** (red): present on the left, missing on the right
+- **Changed** (yellow): same key, different value
+
+## Tech Stack
 
 - Next.js 14
 - React
 - TypeScript
 - Tailwind CSS
-- [jsonabc](https://www.npmjs.com/package/jsonabc) - JSON对象字母排序
-- [diff](https://www.npmjs.com/package/diff) - 专业差异比较和显示
+- [jsonabc](https://www.npmjs.com/package/jsonabc) for key sorting
+- [diff](https://www.npmjs.com/package/diff) for diff generation
 
-## 本地开发
+## Local Development
 
 ```bash
-# 安装依赖
 npm install
-
-# 启动开发服务器
 npm run dev
-
-# 构建生产版本
-npm run build
-
-# 启动生产服务器
-npm run start
 ```
 
-## 贡献
+## Contributing
 
-欢迎提交问题和改进建议！
+Issues and pull requests are welcome.
 
-## 许可证
+## License
 
-MIT 
+MIT
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=eevv/MyJSONDiff&type=Date)](https://star-history.com/#eevv/MyJSONDiff&Date)
